@@ -1,9 +1,9 @@
 {
-  "name": "electron-vite-react",
+  "name": "azkary",
   "version": "2.2.0",
   "main": "dist-electron/main/index.js",
-  "description": "Electron Vite React boilerplate.",
-  "author": "草鞋没号 <308487730@qq.com>",
+  "description": "Remember and perform your daily zikr while working on your PC or laptop.",
+  "author": "M-ZENHOM",
   "license": "MIT",
   "private": true,
   "debug": {
