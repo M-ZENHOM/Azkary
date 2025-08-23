@@ -290,7 +290,8 @@ export function startNotificationTimer() {
           // Increment the zekr count when showing notification
           const newCount = incrementZekrCount(zekr.text)
           console.log(`Incremented count for "${zekr.text}" to ${newCount}`)
-          await showNotification(zekr)
+          const settings = loadSettings()
+          await showNotification(zekr, settings.muteSound)
           break
         }
       }
@@ -346,7 +347,8 @@ ipcMain.handle("test-notification", async () => {
   try {
     const zekrList = loadAzkar()
     if (zekrList && zekrList.length > 0) {
-      await showNotification(zekrList[0])
+      const settings = loadSettings()
+      await showNotification(zekrList[0], settings.muteSound)
       return true
     }
     return false
@@ -445,7 +447,8 @@ ipcMain.handle("trigger-notification-timer", async () => {
     if (zekrList && zekrList.length > 0) {
       const newCount = incrementZekrCount(zekrList[0].text)
       console.log(`Incremented count for "${zekrList[0].text}" to ${newCount}`)
-      await showNotification(zekrList[0])
+      const settings = loadSettings()
+      await showNotification(zekrList[0], settings.muteSound)
       return true
     }
     return false

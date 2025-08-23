@@ -3,7 +3,7 @@ import fs from "node:fs"
 import path from "node:path"
 import { getTodayTotal, saveDailyProgress } from "./zekr"
 
-export async function showNotification(zekr: { text: string }) {
+export async function showNotification(zekr: { text: string }, muteSound: boolean = false) {
 
     if (!Notification.isSupported()) {
         console.log('Notifications not supported on this platform')
@@ -16,8 +16,9 @@ export async function showNotification(zekr: { text: string }) {
     }
 
     const notification = new Notification({
-        title: zekr.text,
+        body: zekr.text,
         icon: iconPath,
+        silent: muteSound
     })
 
     notification.show()

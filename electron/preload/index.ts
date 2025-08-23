@@ -41,7 +41,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getNotificationSettings() {
     return ipcRenderer.invoke("get-notification-settings")
   },
-  updateNotificationSettings(settings: { notificationInterval: number, enabled: boolean, showTray: boolean }) {
+  updateNotificationSettings(settings: { notificationInterval: number, enabled: boolean, showTray: boolean, muteSound: boolean }) {
     return ipcRenderer.invoke("update-notification-settings", settings)
   },
   testNotification() {

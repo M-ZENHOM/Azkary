@@ -4,7 +4,8 @@ import { settingsPath } from './paths'
 export const defaultSettings = {
     notificationInterval: 60,
     enabled: true,
-    showTray: true
+    showTray: true,
+    muteSound: false
 }
 
 export function loadSettings() {
@@ -23,7 +24,7 @@ export function loadSettings() {
     }
 }
 
-export function saveSettings(settings: { notificationInterval: number, enabled: boolean, showTray: boolean }) {
+export function saveSettings(settings: { notificationInterval: number, enabled: boolean, showTray: boolean, muteSound: boolean }) {
     try {
         fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), "utf-8")
     } catch (e) {

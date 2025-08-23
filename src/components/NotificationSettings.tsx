@@ -4,25 +4,21 @@ import Button from "./ui/button";
 import Input from "./ui/input";
 import { DailyTargetSettings } from "./Azkar/DailyTargetSettings";
 import { useDailySettings } from "./Azkar/hooks";
-
-interface NotificationSettings {
-  notificationInterval: number;
-  enabled: boolean;
-  showTray: boolean;
-}
+import { NotificationSettings as NotificationSettingsType } from "../type/electron";
 
 interface NotificationSettingsProps {
-  onSettingsChange: (settings: NotificationSettings) => void;
+  onSettingsChange: (settings: NotificationSettingsType) => void;
 }
 
 export function NotificationSettings({
   onSettingsChange,
 }: NotificationSettingsProps) {
   const [isPending, startTransition] = useTransition();
-  const [settings, setSettings] = useState<NotificationSettings>({
+  const [settings, setSettings] = useState<NotificationSettingsType>({
     notificationInterval: 60,
     enabled: true,
     showTray: true,
+    muteSound: false,
   });
   const { dailySettings, updateDailyTarget } = useDailySettings();
   useEffect(() => {
@@ -42,7 +38,9 @@ export function NotificationSettings({
     }
   };
 
-  const updateSettings = async (newSettings: Partial<NotificationSettings>) => {
+  const updateSettings = async (
+    newSettings: Partial<NotificationSettingsType>
+  ) => {
     try {
       startTransition(() => {
         setSettings((prev) => ({ ...prev, ...newSettings }));
@@ -91,6 +89,17 @@ export function NotificationSettings({
               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
             />
           </div>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700">
+              كتم صوت الإشعارات
+            </label>
+            <input
+              type="checkbox"
+              checked={settings.muteSound}
+              onChange={(e) => updateSettings({ muteSound: e.target.checked })}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+            />
+          </div>
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700 text-right">
               الفاصل الزمني للإشعارات (بالثواني)
@@ -136,6 +145,7 @@ export function NotificationSettings({
                 },
               ].map((interval) => (
                 <Button
+                  key={interval.value}
                   onClick={() =>
                     updateSettings({ notificationInterval: interval.value })
                   }

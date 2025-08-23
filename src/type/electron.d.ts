@@ -9,6 +9,13 @@ export interface DailySettings {
     lastResetDate: string;
 }
 
+export interface NotificationSettings {
+    notificationInterval: number;
+    enabled: boolean;
+    showTray: boolean;
+    muteSound: boolean;
+}
+
 export interface ElectronAPI {
     saveZekr: (data: { text: string, priority: number, count?: number }) => Promise<void>;
     loadZekr: () => Promise<ZekrItem[]>;
@@ -16,8 +23,8 @@ export interface ElectronAPI {
     deleteZekr: (index: number) => Promise<boolean>;
     saveAllZekr: (zekrArray: ZekrItem[]) => Promise<boolean>;
     addMissingZekr: (zekrText: string) => Promise<boolean>;
-    getNotificationSettings: () => Promise<any>;
-    updateNotificationSettings: (settings: any) => Promise<any>;
+    getNotificationSettings: () => Promise<NotificationSettings>;
+    updateNotificationSettings: (settings: NotificationSettings) => Promise<NotificationSettings>;
     testNotification: () => Promise<boolean>;
     triggerNotificationTimer: () => Promise<boolean>;
     loadDailyProgress: (date: string) => Promise<number>;
@@ -26,7 +33,7 @@ export interface ElectronAPI {
     saveDailySettings: (settings: DailySettings) => Promise<boolean>;
     getTodayTotal: () => Promise<number>;
     incrementZekrCount: (zekrText: string) => Promise<number>;
-    getTodayZekrCount: () => Promise<number>;
+    getTodayZekrCount: (zekrText: string) => Promise<number>;
 }
 
 declare global {

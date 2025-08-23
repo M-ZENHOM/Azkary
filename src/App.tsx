@@ -4,22 +4,16 @@ import Layout from "./components/Layout";
 import { NotificationSettings } from "./components/NotificationSettings";
 import Button from "./components/ui/button";
 import { cn } from "./lib/utils";
-
-interface NotificationSettingsType {
-  notificationInterval: number;
-  enabled: boolean;
-  showTray: boolean;
-}
+import { NotificationSettings as NotificationSettingsType } from "./type/electron";
 
 function App() {
-  const [activeTab, setActiveTab] = useState<
-    "zekr" | "settings"
-  >("zekr");
+  const [activeTab, setActiveTab] = useState<"zekr" | "settings">("zekr");
   const [notificationSettings, setNotificationSettings] =
     useState<NotificationSettingsType>({
       notificationInterval: 60,
       enabled: true,
       showTray: true,
+      muteSound: false,
     });
 
   const handleSettingsChange = (settings: NotificationSettingsType) => {
@@ -56,20 +50,27 @@ function App() {
       )}
       <div className="w-full bg-white rounded-lg text-center p-4 text-sm text-black">
         {notificationSettings.enabled ? (
-          <p>
-            الإشعارات مفعلة - كل {notificationSettings.notificationInterval}{" "}
-            ثانية
-            {notificationSettings.notificationInterval >= 60 && (
-              <span className="text-black font-bold">
-                {" "}
-                (
-                {Math.round(
-                  (notificationSettings.notificationInterval / 60) * 10
-                ) / 10}{" "}
-                دقيقة)
-              </span>
-            )}
-          </p>
+          <div className="space-y-2">
+            <p>
+              الإشعارات مفعلة - كل {notificationSettings.notificationInterval}{" "}
+              ثانية
+              {notificationSettings.notificationInterval >= 60 && (
+                <span className="text-black font-bold">
+                  {" "}
+                  (
+                  {Math.round(
+                    (notificationSettings.notificationInterval / 60) * 10
+                  ) / 10}{" "}
+                  دقيقة)
+                </span>
+              )}
+            </p>
+            <p className="text-sm text-gray-600">
+              {notificationSettings.muteSound
+                ? "🔇 الصوت مكتوم"
+                : "🔊 الصوت مفعل"}
+            </p>
+          </div>
         ) : (
           <p>الإشعارات معطلة</p>
         )}
