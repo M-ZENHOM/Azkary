@@ -36,8 +36,6 @@
     "owner": "M-ZENHOM",
     "repo": "Azkary",
     "private": false,
-    "releaseType": "release",
-    "draft": false,
-    "prerelease": false
+    "releaseType": "release"
   }
 }
