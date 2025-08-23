@@ -148,4 +148,28 @@ export const Icons = {
       />
     </svg>
   ),
+  X: (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+      fill="currentColor"
+      width="800px"
+      height="800px"
+      viewBox="0 0 1920 1920"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path d="M797.32 985.882 344.772 1438.43l188.561 188.562 452.549-452.549 452.548 452.549 188.562-188.562-452.549-452.548 452.549-452.549-188.562-188.561L985.882 797.32 533.333 344.772 344.772 533.333z" />
+    </svg>
+  ),
+  UpdateIcon: (props: React.SVGProps<SVGSVGElement>) => (
+    <svg
+      fill="currentColor"
+      width="800px"
+      height="800px"
+      viewBox="0 0 24 24"
+      xmlns="http://www.w3.org/2000/svg"
+      {...props}
+    >
+      <path d="M12,4V1L8,5l4,4V6c3.31,0,6,2.69,6,6c0,1.01-0.25,1.97-0.7,2.8l1.46,1.46C19.54,15.03,20,13.57,20,12C20,7.58,16.42,4,12,4z M12,18c-3.31,0-6-2.69-6-6c0-1.01,0.25-1.97,0.7-2.8L5.24,7.74C4.46,8.97,4,10.43,4,12c0,4.42,3.58,8,8,8v3l4-4l-4-4V18z" />
+    </svg>
+  ),
 };

@@ -5,6 +5,7 @@ import { NotificationSettings } from "./components/NotificationSettings";
 import Button from "./components/ui/button";
 import { cn } from "./lib/utils";
 import { NotificationSettings as NotificationSettingsType } from "./type/electron";
+import Update from "./components/update";
 
 function App() {
   const [activeTab, setActiveTab] = useState<"zekr" | "settings">("zekr");
@@ -75,6 +76,8 @@ function App() {
           <p>الإشعارات معطلة</p>
         )}
       </div>
+
+      <Update />
     </Layout>
   );
 }

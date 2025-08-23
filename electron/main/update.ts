@@ -1,10 +1,12 @@
 import { app, ipcMain } from 'electron'
-import { autoUpdater } from 'electron-updater'
+import pkg from 'electron-updater'
 import type {
   ProgressInfo,
   UpdateDownloadedEvent,
   UpdateInfo,
 } from 'electron-updater'
+
+const { autoUpdater } = pkg
 
 export function update(win: Electron.BrowserWindow) {
 
