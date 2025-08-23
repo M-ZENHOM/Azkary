@@ -31,11 +31,12 @@
     "allowToChangeInstallationDirectory": true,
     "deleteAppDataOnUninstall": false
   },
-  "publish": {
-    "provider": "github",
-    "owner": "M-ZENHOM",
-    "repo": "Azkary",
-    "private": false,
-    "releaseType": "release"
-  }
+  "publish": [
+    {
+      "provider": "github",
+      "owner": "M-ZENHOM",
+      "repo": "Azkary",
+      "releaseType": "release"
+    }
+  ]
 }
