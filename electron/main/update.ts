@@ -1,29 +1,47 @@
 import { app, ipcMain } from 'electron'
-import { createRequire } from 'node:module'
+import { autoUpdater } from 'electron-updater'
 import type {
   ProgressInfo,
   UpdateDownloadedEvent,
   UpdateInfo,
 } from 'electron-updater'
 
-const { autoUpdater } = createRequire(import.meta.url)('electron-updater');
-
 export function update(win: Electron.BrowserWindow) {
 
-  // When set to false, the update download will be triggered through the API
   autoUpdater.autoDownload = false
   autoUpdater.disableWebInstaller = false
   autoUpdater.allowDowngrade = false
 
+  if (app.isPackaged) {
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'M-ZENHOM',
+      repo: 'Azkary',
+      private: false
+    })
+  }
+
   // start check
-  autoUpdater.on('checking-for-update', function () { })
+  autoUpdater.on('checking-for-update', function () {
+    console.log('Checking for updates...')
+  })
+
   // update available
   autoUpdater.on('update-available', (arg: UpdateInfo) => {
+    console.log('Update available:', arg.version)
     win.webContents.send('update-can-available', { update: true, version: app.getVersion(), newVersion: arg?.version })
   })
+
   // update not available
   autoUpdater.on('update-not-available', (arg: UpdateInfo) => {
+    console.log('No update available')
     win.webContents.send('update-can-available', { update: false, version: app.getVersion(), newVersion: arg?.version })
+  })
+
+  // Handle update errors
+  autoUpdater.on('error', (error: Error) => {
+    console.error('Auto-updater error:', error)
+    win.webContents.send('update-error', { message: error.message, error: error.toString() })
   })
 
   // Checking for updates

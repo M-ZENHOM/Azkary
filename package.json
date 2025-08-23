@@ -1,6 +1,6 @@
 {
   "name": "azkary",
-  "version": "2.2.0",
+  "version": "1.0.0",
   "main": "dist-electron/main/index.js",
   "description": "Remember and perform your daily zikr while working on your PC or laptop.",
   "author": "M-ZENHOM",
@@ -15,6 +15,14 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
+    "build:win": "tsc && vite build && electron-builder --win",
+    "build:mac": "tsc && vite build && electron-builder --mac",
+    "build:publish": "tsc && vite build && electron-builder --publish=always",
+    "release": "node scripts/release.js",
+    "release:patch": "node scripts/release.js patch",
+    "release:minor": "node scripts/release.js minor",
+    "release:major": "node scripts/release.js major",
+    "prepare-release": "./scripts/prepare-release.sh",
     "preview": "vite preview",
     "pretest": "vite build --mode=test",
     "test": "vitest run"
