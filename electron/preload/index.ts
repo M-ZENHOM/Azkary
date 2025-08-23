@@ -1,6 +1,5 @@
 import { ipcRenderer, contextBridge } from 'electron'
 
-// --------- Expose some API to the Renderer process ---------
 contextBridge.exposeInMainWorld('ipcRenderer', {
   on(...args: Parameters<typeof ipcRenderer.on>) {
     const [channel, listener] = args
@@ -18,12 +17,62 @@ contextBridge.exposeInMainWorld('ipcRenderer', {
     const [channel, ...omit] = args
     return ipcRenderer.invoke(channel, ...omit)
   },
-
-  // You can expose other APTs you need here.
-  // ...
 })
 
-// --------- Preload scripts loading ---------
+contextBridge.exposeInMainWorld('electronAPI', {
+  saveZekr(data: { text: string, priority: number, count?: number }) {
+    return ipcRenderer.invoke("save-zekr", data)
+  },
+  loadZekr() {
+    return ipcRenderer.invoke("load-zekr")
+  },
+  updateZekr(index: number, data: { text: string, priority: number, count?: number }) {
+    return ipcRenderer.invoke("update-zekr", index, data)
+  },
+  deleteZekr(index: number) {
+    return ipcRenderer.invoke("delete-zekr", index)
+  },
+  saveAllZekr(zekrArray: { text: string, priority: number, count: number }[]) {
+    return ipcRenderer.invoke("save-all-zekr", zekrArray)
+  },
+  addMissingZekr(zekrText: string) {
+    return ipcRenderer.invoke("add-missing-zekr", zekrText)
+  },
+  getNotificationSettings() {
+    return ipcRenderer.invoke("get-notification-settings")
+  },
+  updateNotificationSettings(settings: { notificationInterval: number, enabled: boolean, showTray: boolean }) {
+    return ipcRenderer.invoke("update-notification-settings", settings)
+  },
+  testNotification() {
+    return ipcRenderer.invoke("test-notification")
+  },
+  triggerNotificationTimer() {
+    return ipcRenderer.invoke("trigger-notification-timer")
+  },
+  loadDailyProgress(date: string) {
+    return ipcRenderer.invoke("load-daily-progress", date)
+  },
+  saveDailyProgress(date: string, count: number) {
+    return ipcRenderer.invoke("save-daily-progress", date, count)
+  },
+  loadDailySettings() {
+    return ipcRenderer.invoke("load-daily-settings")
+  },
+  saveDailySettings(settings: { target: number, lastResetDate: string }) {
+    return ipcRenderer.invoke("save-daily-settings", settings)
+  },
+  getTodayTotal() {
+    return ipcRenderer.invoke("get-today-total")
+  },
+  incrementZekrCount(zekrText: string) {
+    return ipcRenderer.invoke("increment-zekr-count", zekrText)
+  },
+  getTodayZekrCount() {
+    return ipcRenderer.invoke("get-today-zekr-count")
+  }
+})
+
 function domReady(condition: DocumentReadyState[] = ['complete', 'interactive']) {
   return new Promise(resolve => {
     if (condition.includes(document.readyState)) {
@@ -105,8 +154,6 @@ function useLoading() {
     },
   }
 }
-
-// ----------------------------------------------------------------------
 
 const { appendLoading, removeLoading } = useLoading()
 domReady().then(appendLoading)
