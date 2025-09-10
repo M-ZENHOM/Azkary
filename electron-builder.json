@@ -44,10 +44,5 @@
     "uninstallerIcon": "build/icon.ico",
     "installerHeaderIcon": "build/icon.ico"
   },
-  "publish": {
-    "provider": "github",
-    "owner": "M-ZENHOM",
-    "repo": "Azkary",
-    "releaseType": "release"
-  }
+  "publish": null
 }
