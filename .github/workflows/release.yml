@@ -28,7 +28,7 @@ jobs:
           npm_config_arch: x64
 
       - name: Build Windows
-        run: npm run build-only && npx electron-builder --win --config.compression=normal
+        run: npm run build-only && npx electron-builder --win --publish always --config.compression=normal
         env:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
 
@@ -52,6 +52,6 @@ jobs:
           npm_config_arch: x64
 
       - name: Build macOS
-        run: npm run build-only && npx electron-builder --mac --config.compression=normal
+        run: npm run build-only && npx electron-builder --mac --publish always --config.compression=normal
         env:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
