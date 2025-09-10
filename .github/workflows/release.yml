@@ -50,7 +50,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: release/*/
+          path: release/*/*.exe
           retention-days: 30
 
       - name: Upload macOS artifacts
@@ -58,7 +58,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-release
-          path: release/*/
+          path: release/*/*.{dmg,zip}
           retention-days: 30
 
   create-release:
@@ -91,7 +91,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ./release-windows/**/*
-            ./release-macos/**/*
+            ./release-windows/*.exe
+            ./release-macos/*.dmg
+            ./release-macos/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
