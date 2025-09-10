@@ -1,6 +1,6 @@
 {
   "name": "azkary",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "main": "dist-electron/main/index.js",
   "description": "Remember and perform your daily zikr while working on your PC or laptop.",
   "author": "M-ZENHOM",
