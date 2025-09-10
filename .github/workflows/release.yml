@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     tags:
-      - 'v*'
+      - "v*"
   release:
     types: [published]
 
@@ -45,12 +45,17 @@ jobs:
         env:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
 
+      - name: List build output
+        run: |
+          echo "Build output structure:"
+          find release -type f -name "*.exe" -o -name "*.dmg" -o -name "*.zip" | head -20
+
       - name: Upload Windows artifacts
         if: matrix.os == 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: windows-release
-          path: release/*/*.exe
+          path: release/
           retention-days: 30
 
       - name: Upload macOS artifacts
@@ -58,7 +63,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: macos-release
-          path: release/*/*.{dmg,zip}
+          path: release/
           retention-days: 30
 
   create-release:
@@ -88,9 +93,11 @@ jobs:
       - name: List available files
         run: |
           echo "Windows files:"
-          ls -la ./release-windows/ || echo "No Windows files found"
+          find ./release-windows -type f -name "*.exe" || echo "No Windows exe files found"
           echo "macOS files:"
-          ls -la ./release-macos/ || echo "No macOS files found"
+          find ./release-macos -type f -name "*.dmg" -o -name "*.zip" || echo "No macOS files found"
+          echo "All files in release directories:"
+          find ./release-windows ./release-macos -type f | head -20
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
@@ -100,8 +107,8 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            ./release-windows/*.exe
-            ./release-macos/*.dmg
-            ./release-macos/*.zip
+            ./release-windows/**/*.exe
+            ./release-macos/**/*.dmg
+            ./release-macos/**/*.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
