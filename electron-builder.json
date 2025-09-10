@@ -45,6 +45,9 @@
     "installerHeaderIcon": "build/icon.ico"
   },
   "publish": {
-    "provider": "github"
+    "provider": "github",
+    "owner": "M-ZENHOM",
+    "repo": "Azkary",
+    "releaseType": "release"
   }
 }
