@@ -44,5 +44,7 @@
     "uninstallerIcon": "build/icon.ico",
     "installerHeaderIcon": "build/icon.ico"
   },
-  "publish": null
+  "publish": {
+    "provider": "github"
+  }
 }
