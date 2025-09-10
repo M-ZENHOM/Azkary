@@ -6,6 +6,11 @@
   "author": "M-ZENHOM",
   "license": "MIT",
   "private": true,
+  "homepage": "https://github.com/M-ZENHOM/Azkary",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/M-ZENHOM/Azkary.git"
+  },
   "debug": {
     "env": {
       "VITE_DEV_SERVER_URL": "http://127.0.0.1:7777/"
@@ -15,9 +20,11 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build && electron-builder",
-    "build:win": "tsc && vite build && electron-builder --win",
+    "build-only": "tsc && vite build",
     "build:mac": "tsc && vite build && electron-builder --mac",
+    "build:win": "tsc && vite build && electron-builder --win",
     "build:publish": "tsc && vite build && electron-builder --publish=always",
+    "publish": "npm run build-only && electron-builder --publish always",
     "release": "node scripts/release.js",
     "release:patch": "node scripts/release.js patch",
     "release:minor": "node scripts/release.js minor",

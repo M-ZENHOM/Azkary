@@ -34,7 +34,7 @@ export const useZekrManager = () => {
 
             setZekr(SAMPLE_ZEKR);
             if (window.electronAPI?.saveAllZekr) {
-                await window.electronAPI.saveAllZekr(SAMPLE_ZEKR);
+                await window.electronAPI.saveAllZekr(SAMPLE_ZEKR, true);
             }
         } catch (error) {
             console.error("Failed to load zekr:", error);
@@ -151,19 +151,50 @@ export const useZekrManager = () => {
         startTransition(() => {
             loadZekr();
         });
-    }, [loadZekr]);
+    }, []); 
 
     useEffect(() => {
-        const handleZekrDataUpdate = async (event: any, data: { total: number }) => {
+        let isProcessingUpdate = false;
+        let isInitialLoad = true;
+
+        setTimeout(() => {
+            isInitialLoad = false;
+            console.log('Initial load complete, notifications enabled');
+        }, 3000);
+
+        const handleZekrDataUpdate = async (event: Electron.IpcRendererEvent, data: { total: number }) => {
             console.log('Received zekr-data-updated event:', data);
 
-            // Always reload the zekr data when we receive an update
-            if (window.electronAPI?.loadZekr) {
-                const zekrData = await window.electronAPI.loadZekr();
-                if (zekrData && Array.isArray(zekrData)) {
-                    console.log('Updating zekr data from event:', zekrData);
-                    setZekr(zekrData);
+            if (isInitialLoad) {
+                console.log('Skipping notification during initial load');
+                return;
+            }
+
+            if (isProcessingUpdate) {
+                console.log('Already processing update, skipping');
+                return;
+            }
+
+            const currentTotal = zekr.reduce((sum, item) => sum + (item.count || 0), 0);
+            if (data.total === currentTotal) {
+                console.log('Total matches current state, skipping reload');
+                return;
+            }
+
+            try {
+                isProcessingUpdate = true;
+
+                if (window.electronAPI?.loadZekr) {
+                    const zekrData = await window.electronAPI.loadZekr();
+                    if (zekrData && Array.isArray(zekrData)) {
+                        console.log('Updating zekr data from event:', zekrData);
+                        setZekr(zekrData);
+                    }
                 }
+            } catch (error) {
+                console.error('Error processing zekr update:', error);
+            } finally {
+                isProcessingUpdate = false;
             }
         };
 
@@ -176,7 +207,7 @@ export const useZekrManager = () => {
                 window.ipcRenderer.off("zekr-data-updated", handleZekrDataUpdate);
             }
         };
-    }, []);
+    }, []); // Keep empty dependency array
 
     return {
         zekr,

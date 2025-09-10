@@ -5,7 +5,9 @@ export const defaultSettings = {
     notificationInterval: 60,
     enabled: true,
     showTray: true,
-    muteSound: false
+    muteSound: false,
+    preventFocus: true,
+    autoStartup: true
 }
 
 export function loadSettings() {
@@ -24,7 +26,7 @@ export function loadSettings() {
     }
 }
 
-export function saveSettings(settings: { notificationInterval: number, enabled: boolean, showTray: boolean, muteSound: boolean }) {
+export function saveSettings(settings: { notificationInterval: number, enabled: boolean, showTray: boolean, muteSound: boolean, preventFocus: boolean, autoStartup: boolean }) {
     try {
         fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2), "utf-8")
     } catch (e) {

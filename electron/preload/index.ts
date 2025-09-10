@@ -32,8 +32,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   deleteZekr(index: number) {
     return ipcRenderer.invoke("delete-zekr", index)
   },
-  saveAllZekr(zekrArray: { text: string, priority: number, count: number }[]) {
-    return ipcRenderer.invoke("save-all-zekr", zekrArray)
+  saveAllZekr(zekrArray: { text: string, priority: number, count: number }[], skipNotification?: boolean) {
+    return ipcRenderer.invoke("save-all-zekr", zekrArray, skipNotification)
   },
   addMissingZekr(zekrText: string) {
     return ipcRenderer.invoke("add-missing-zekr", zekrText)
@@ -41,7 +41,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getNotificationSettings() {
     return ipcRenderer.invoke("get-notification-settings")
   },
-  updateNotificationSettings(settings: { notificationInterval: number, enabled: boolean, showTray: boolean, muteSound: boolean }) {
+  updateNotificationSettings(settings: { notificationInterval: number, enabled: boolean, showTray: boolean, muteSound: boolean, autoStartup: boolean }) {
     return ipcRenderer.invoke("update-notification-settings", settings)
   },
   testNotification() {
@@ -49,6 +49,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   triggerNotificationTimer() {
     return ipcRenderer.invoke("trigger-notification-timer")
+  },
+  checkAutoStartupStatus() {
+    return ipcRenderer.invoke("check-auto-startup-status")
+  },
+  verifyAutoStartup() {
+    return ipcRenderer.invoke("verify-auto-startup")
   },
   loadDailyProgress(date: string) {
     return ipcRenderer.invoke("load-daily-progress", date)

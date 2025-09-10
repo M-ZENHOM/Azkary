@@ -19,6 +19,7 @@ export function NotificationSettings({
     enabled: true,
     showTray: true,
     muteSound: false,
+    autoStartup: true,
   });
   const { dailySettings, updateDailyTarget } = useDailySettings();
   useEffect(() => {
@@ -97,6 +98,17 @@ export function NotificationSettings({
               type="checkbox"
               checked={settings.muteSound}
               onChange={(e) => updateSettings({ muteSound: e.target.checked })}
+              className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
+            />
+          </div>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-gray-700">
+              تشغيل التطبيق عند بدء النظام
+            </label>
+            <input
+              type="checkbox"
+              checked={settings.autoStartup}
+              onChange={(e) => updateSettings({ autoStartup: e.target.checked })}
               className="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500 focus:ring-2"
             />
           </div>

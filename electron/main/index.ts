@@ -3,6 +3,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import os from 'os'
+import { exec, execSync } from 'child_process'
 import { showNotification } from '../azkar/notification'
 import { defaultSettings, loadSettings, saveSettings } from '../azkar/setting'
 import {
@@ -45,6 +46,136 @@ let notificationTimer: NodeJS.Timeout | null = null
 const preload = path.join(__dirname, '../preload/index.mjs')
 const indexHtml = path.join(RENDERER_DIST, 'index.html')
 
+function setAutoLaunch(enabled: boolean) {
+  try {
+    if (process.platform === 'win32') {
+      const appPath = process.execPath
+      const appName = app.getName()
+
+      if (!fs.existsSync(appPath)) {
+        console.error('App executable not found at:', appPath)
+        return
+      }
+
+      if (enabled) {
+        const command = `reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "${appName}" /t REG_SZ /d "\"${appPath}\"" /f`
+        exec(command, (error: Error | null) => {
+          if (error) {
+            console.error('Failed to add to startup:', error)
+            return
+          }
+          console.log('Added to startup successfully')
+        })
+        return
+      }
+
+      const command = `reg delete "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "${appName}" /f`
+      exec(command, (error: Error | null) => {
+        if (error) {
+          console.error('Failed to remove from startup:', error)
+          return
+        }
+        console.log('Removed from startup successfully')
+      })
+      return
+    }
+
+    if (process.platform === 'darwin') {
+      app.setLoginItemSettings({
+        openAtLogin: enabled,
+        openAsHidden: true
+      })
+      console.log(`Auto-startup ${enabled ? 'enabled' : 'disabled'} on macOS`)
+      return
+    }
+
+    const desktopEntryPath = path.join(os.homedir(), '.config/autostart/azkary.desktop')
+
+    if (enabled) {
+      if (!fs.existsSync(process.execPath)) {
+        console.error('App executable not found at:', process.execPath)
+        return
+      }
+
+      const desktopEntry = `[Desktop Entry]
+Type=Application
+Name=Azkary
+Exec=${process.execPath}
+Hidden=false
+NoDisplay=false
+X-GNOME-Autostart-enabled=true`
+
+      const autostartDir = path.dirname(desktopEntryPath)
+      if (!fs.existsSync(autostartDir)) {
+        fs.mkdirSync(autostartDir, { recursive: true })
+      }
+
+      fs.writeFileSync(desktopEntryPath, desktopEntry)
+      console.log('Added to startup on Linux')
+      return
+    }
+
+    if (fs.existsSync(desktopEntryPath)) {
+      fs.unlinkSync(desktopEntryPath)
+      console.log('Removed from startup on Linux')
+    }
+  } catch (error) {
+    console.error('Error setting auto-launch:', error)
+  }
+}
+
+function checkAutoLaunchStatus(): boolean {
+  if (process.platform === 'win32') {
+    try {
+      const result = execSync(`reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "${app.getName()}"`, { encoding: 'utf8' })
+      return result.includes(app.getName())
+    } catch {
+      return false
+    }
+  }
+
+  if (process.platform === 'darwin') {
+    return app.getLoginItemSettings().openAtLogin
+  }
+
+  const desktopEntryPath = path.join(os.homedir(), '.config/autostart/azkary.desktop')
+  return fs.existsSync(desktopEntryPath)
+}
+
+function verifyAutoStartup(): boolean {
+  if (process.platform === 'win32') {
+    try {
+      const result = execSync(`reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "${app.getName()}"`, { encoding: 'utf8' })
+      if (result.includes(app.getName())) {
+        const pathMatch = result.match(/REG_SZ\s+(.+)/)
+        if (pathMatch) {
+          const registryPath = pathMatch[1].trim().replace(/"/g, '')
+          return registryPath === process.execPath
+        }
+      }
+      return false
+    } catch {
+      return false
+    }
+  }
+
+  if (process.platform === 'darwin') {
+    const loginItemSettings = app.getLoginItemSettings()
+    return loginItemSettings.openAtLogin
+  }
+
+  const desktopEntryPath = path.join(os.homedir(), '.config/autostart/azkary.desktop')
+  if (fs.existsSync(desktopEntryPath)) {
+    try {
+      const content = fs.readFileSync(desktopEntryPath, 'utf8')
+      return content.includes(`Exec=${process.execPath}`)
+    } catch {
+      return false
+    }
+  }
+  return false
+}
+
 function createTray() {
   try {
     let iconPath = path.join(process.env.VITE_PUBLIC, 'favicon.ico')
@@ -59,12 +190,12 @@ function createTray() {
       {
         label: 'Show App',
         click: () => {
-          if (win) {
-            win.show()
-            win.focus()
-            if (win.isMinimized()) {
-              win.restore()
-            }
+          if (!win) return
+
+          win.show()
+          win.focus()
+          if (win.isMinimized()) {
+            win.restore()
           }
         }
       },
@@ -74,12 +205,12 @@ function createTray() {
     tray.setToolTip('Azkary - Zekr Reminder')
     tray.setContextMenu(contextMenu)
     tray.on('click', () => {
-      if (win) {
-        win.show()
-        win.focus()
-        if (win.isMinimized()) {
-          win.restore()
-        }
+      if (!win) return
+
+      win.show()
+      win.focus()
+      if (win.isMinimized()) {
+        win.restore()
       }
     })
   } catch (error) {
@@ -89,9 +220,9 @@ function createTray() {
 
 function ensureTrayExists() {
   const settings = loadSettings()
-  if (settings.showTray && !tray) {
-    createTray()
-  }
+  if (!settings.showTray || tray) return
+
+  createTray()
 }
 
 
@@ -157,6 +288,11 @@ async function createWindow() {
 app.whenReady().then(() => {
   createWindow()
   const settings = loadSettings()
+
+  if (settings.autoStartup) {
+    setAutoLaunch(true)
+  }
+
   if (settings.showTray) {
     createTray()
   }
@@ -250,9 +386,9 @@ ipcMain.handle("delete-zekr", async (_, index) => {
   }
 })
 
-ipcMain.handle("save-all-zekr", async (_, zekrArray) => {
+ipcMain.handle("save-all-zekr", async (_, zekrArray, skipNotification = false) => {
   try {
-    saveAllZekr(zekrArray)
+    saveAllZekr(zekrArray, skipNotification)
     return true
   } catch (e) {
     console.error('Failed to save all zekr:', e)
@@ -280,23 +416,25 @@ export function startNotificationTimer() {
     const zekrList = loadAzkar()
     console.log('Loaded zekr list:', zekrList)
 
-    if (zekrList && zekrList.length > 0) {
-      const totalPriority = zekrList.reduce((sum: number, zekr: any) => sum + zekr.priority, 0)
-      let random = Math.random() * totalPriority
-      for (const zekr of zekrList) {
-        random -= zekr.priority
-        if (random <= 0) {
-          console.log(`Selected random zekr: "${zekr.text}"`)
-          // Increment the zekr count when showing notification
-          const newCount = incrementZekrCount(zekr.text)
-          console.log(`Incremented count for "${zekr.text}" to ${newCount}`)
-          const settings = loadSettings()
-          await showNotification(zekr, settings.muteSound)
-          break
-        }
-      }
-    } else {
+    if (!zekrList || zekrList.length === 0) {
       console.log('No zekr found or empty zekr list')
+      return
+    }
+
+    const totalPriority = zekrList.reduce((sum: number, zekr: { priority: number }) => sum + zekr.priority, 0)
+    let random = Math.random() * totalPriority
+
+    for (const zekr of zekrList) {
+      random -= zekr.priority
+      if (random > 0) continue
+
+      console.log(`Selected random zekr: "${zekr.text}"`)
+      // Increment the zekr count when showing notification
+      const newCount = incrementZekrCount(zekr.text)
+      console.log(`Incremented count for "${zekr.text}" to ${newCount}`)
+      const settings = loadSettings()
+      await showNotification(zekr, settings.muteSound)
+      break
     }
   }, intervalMs)
 }
@@ -322,6 +460,11 @@ ipcMain.handle("update-notification-settings", async (_, settings) => {
     saveSettings(updatedSettings)
     console.log('Settings saved to file')
 
+    if (settings.hasOwnProperty('autoStartup')) {
+      setAutoLaunch(settings.autoStartup)
+      console.log('Auto-startup setting updated:', settings.autoStartup)
+    }
+
     startNotificationTimer()
     console.log('Notification timer restarted')
 
@@ -329,12 +472,16 @@ ipcMain.handle("update-notification-settings", async (_, settings) => {
       if (settings.showTray && !tray) {
         createTray()
         console.log('Tray created')
-      } else if (!settings.showTray && tray) {
+        return updatedSettings
+      }
+
+      if (!settings.showTray && tray) {
         tray.destroy()
         tray = null
         console.log('Tray destroyed')
       }
     }
+
     ensureTrayExists()
     return updatedSettings
   } catch (e) {
@@ -432,7 +579,7 @@ ipcMain.handle("add-missing-zekr", async (_, zekrText: string) => {
       count: 0
     }
     const updatedZekrList = [...zekrList, newZekr]
-    saveAllZekr(updatedZekrList)
+    saveAllZekr(updatedZekrList, false) // Allow notification for adding missing zekr
     return true
   } catch (e) {
     console.error('Failed to add missing zekr:', e)
@@ -454,6 +601,24 @@ ipcMain.handle("trigger-notification-timer", async () => {
     return false
   } catch (e) {
     console.error('Failed to trigger notification timer:', e)
+    return false
+  }
+})
+
+ipcMain.handle("check-auto-startup-status", async () => {
+  try {
+    return checkAutoLaunchStatus()
+  } catch (e) {
+    console.error('Failed to check auto-startup status:', e)
+    return false
+  }
+})
+
+ipcMain.handle("verify-auto-startup", async () => {
+  try {
+    return verifyAutoStartup()
+  } catch (e) {
+    console.error('Failed to verify auto-startup:', e)
     return false
   }
 })

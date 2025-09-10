@@ -145,7 +145,7 @@ const Update = () => {
   );
 
   const onUpdateDownloaded = useCallback(
-    (_event: Electron.IpcRendererEvent, ...args: any[]) => {
+    (_event: Electron.IpcRendererEvent, ...args: unknown[]) => {
       setProgressInfo({ percent: 100 });
       setDialogConfig({
         title: "اكتمل التحميل",

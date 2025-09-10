@@ -16,7 +16,7 @@ export const useDailyReset = (zekr: Zekr[], dailySettings: DailySettings) => {
         }
 
         if (window.electronAPI?.saveAllZekr) {
-            await window.electronAPI.saveAllZekr(resetZekr);
+            await window.electronAPI.saveAllZekr(resetZekr, false); // Allow notification for daily reset
         }
 
         if (window.electronAPI?.saveDailyProgress) {

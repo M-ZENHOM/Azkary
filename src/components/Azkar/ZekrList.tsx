@@ -61,7 +61,7 @@ export const ZekrList = ({
 };
 
 interface ZekrItemProps {
-  item: any;
+  item: { text: string; priority: number; count: number };
   index: number;
   isEditing: boolean;
   editingData: EditingZekr | null;

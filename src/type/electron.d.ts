@@ -14,6 +14,7 @@ export interface NotificationSettings {
     enabled: boolean;
     showTray: boolean;
     muteSound: boolean;
+    autoStartup: boolean;
 }
 
 export interface ElectronAPI {
@@ -21,12 +22,14 @@ export interface ElectronAPI {
     loadZekr: () => Promise<ZekrItem[]>;
     updateZekr: (index: number, data: { text: string, priority: number, count?: number }) => Promise<boolean>;
     deleteZekr: (index: number) => Promise<boolean>;
-    saveAllZekr: (zekrArray: ZekrItem[]) => Promise<boolean>;
+    saveAllZekr: (zekrArray: ZekrItem[], skipNotification?: boolean) => Promise<boolean>;
     addMissingZekr: (zekrText: string) => Promise<boolean>;
     getNotificationSettings: () => Promise<NotificationSettings>;
     updateNotificationSettings: (settings: NotificationSettings) => Promise<NotificationSettings>;
     testNotification: () => Promise<boolean>;
     triggerNotificationTimer: () => Promise<boolean>;
+    checkAutoStartupStatus: () => Promise<boolean>;
+    verifyAutoStartup: () => Promise<boolean>;
     loadDailyProgress: (date: string) => Promise<number>;
     saveDailyProgress: (date: string, count: number) => Promise<boolean>;
     loadDailySettings: () => Promise<DailySettings>;
@@ -40,10 +43,10 @@ declare global {
     interface Window {
         electronAPI?: ElectronAPI;
         ipcRenderer?: {
-            on: (channel: string, listener: (event: any, ...args: any[]) => void) => void;
-            off: (channel: string, ...args: any[]) => void;
-            send: (channel: string, ...args: any[]) => void;
-            invoke: (channel: string, ...args: any[]) => Promise<any>;
+            on: (channel: string, listener: (event: Electron.IpcRendererEvent, ...args: unknown[]) => void) => void;
+            off: (channel: string, ...args: unknown[]) => void;
+            send: (channel: string, ...args: unknown[]) => void;
+            invoke: (channel: string, ...args: unknown[]) => Promise<unknown>;
         };
     }
 } 

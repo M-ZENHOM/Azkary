@@ -8,19 +8,52 @@ import {
 } from "./paths";
 
 let webContents: WebContents | null = null
+let isNotifying = false
+let notificationTimeout: NodeJS.Timeout | null = null
+let isInitializing = true
+let notificationCount = 0
+const MAX_NOTIFICATIONS_PER_SECOND = 5
 
 export function setWebContents(wc: WebContents) {
     webContents = wc
+    setTimeout(() => {
+        isInitializing = false
+        console.log('Initialization complete, notifications enabled')
+    }, 2000)
 }
 
 function _notifyRendererOfZekrUpdate() {
-    if (webContents) {
-        const total = getTodayTotal()
-        console.log('Notifying renderer of zekr update, total:', total)
-        webContents.send('zekr-data-updated', { total })
-    } else {
-        console.log('No webContents available for notification')
+    if (isNotifying || !webContents || isInitializing) {
+        console.log('Notification blocked:', { isNotifying, hasWebContents: !!webContents, isInitializing })
+        return
     }
+
+    notificationCount++
+    if (notificationCount > MAX_NOTIFICATIONS_PER_SECOND) {
+        console.log('Rate limit exceeded, skipping notification')
+        return
+    }
+
+    setTimeout(() => {
+        notificationCount = 0
+    }, 1000)
+
+    if (notificationTimeout) {
+        clearTimeout(notificationTimeout)
+    }
+
+    notificationTimeout = setTimeout(() => {
+        try {
+            isNotifying = true
+            const total = getTodayTotal()
+            console.log('Notifying renderer of zekr update, total:', total)
+            webContents?.send('zekr-data-updated', { total })
+        } catch (error) {
+            console.error('Error notifying renderer:', error)
+        } finally {
+            isNotifying = false
+        }
+    }, 200) // Increased debounce to 200ms
 }
 
 export function loadAzkar(): ZekrItem[] {
@@ -28,15 +61,39 @@ export function loadAzkar(): ZekrItem[] {
         if (!fs.existsSync(azkarPath)) {
             return []
         }
+
         const fileData = fs.readFileSync(azkarPath, "utf-8")
+
+        if (!fileData.trim()) {
+            console.log("zekr.json is empty, returning empty array")
+            return []
+        }
+
         const data = JSON.parse(fileData)
-        return data.map((item: any) => ({
+
+        if (!Array.isArray(data)) {
+            console.error("zekr.json does not contain an array, returning empty array")
+            return []
+        }
+
+        return data.map((item: { text: string; priority: number; count?: number }) => ({
             text: item.text,
             priority: item.priority,
             count: item.count || 0
         }))
     } catch (error) {
         console.error("Error loading zekr.json:", error)
+
+        try {
+            const backupPath = azkarPath + '.backup.' + Date.now()
+            if (fs.existsSync(azkarPath)) {
+                fs.copyFileSync(azkarPath, backupPath)
+                console.log(`Backed up corrupted zekr.json to ${backupPath}`)
+            }
+        } catch (backupError) {
+            console.error("Failed to backup corrupted zekr.json:", backupError)
+        }
+
         return []
     }
 }
@@ -87,10 +144,12 @@ export function deleteZekr(index: number) {
     }
 }
 
-export function saveAllZekr(zekrArray: ZekrItem[]) {
+export function saveAllZekr(zekrArray: ZekrItem[], skipNotification: boolean = false) {
     try {
         fs.writeFileSync(azkarPath, JSON.stringify(zekrArray, null, 2), "utf-8")
-        _notifyRendererOfZekrUpdate()
+        if (!skipNotification) {
+            _notifyRendererOfZekrUpdate()
+        }
     } catch (e) {
         console.error("Failed to save all zekr:", e)
     }

@@ -15,6 +15,7 @@ function App() {
       enabled: true,
       showTray: true,
       muteSound: false,
+      autoStartup: true,
     });
 
   const handleSettingsChange = (settings: NotificationSettingsType) => {
@@ -70,6 +71,11 @@ function App() {
               {notificationSettings.muteSound
                 ? "🔇 الصوت مكتوم"
                 : "🔊 الصوت مفعل"}
+            </p>
+            <p className="text-sm text-gray-600">
+              {notificationSettings.autoStartup
+                ? "🚀 التشغيل التلقائي مفعل"
+                : "⏹️ التشغيل التلقائي معطل"}
             </p>
           </div>
         ) : (
