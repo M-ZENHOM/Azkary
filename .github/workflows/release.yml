@@ -29,7 +29,7 @@ jobs:
           npm_config_arch: x64
 
       - name: Build Windows
-        run: bun run build-only && bunx electron-builder --win --publish always --config.compression=normal
+        run: bun run build-only && bunx electron-builder --win --config.compression=normal
         env:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
 
@@ -53,6 +53,6 @@ jobs:
           npm_config_arch: x64
 
       - name: Build macOS
-        run: bun run build-only && bunx electron-builder --mac --publish always --config.compression=normal
+        run: bun run build-only && bunx electron-builder --mac --config.compression=normal
         env:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: true
