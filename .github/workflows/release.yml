@@ -76,12 +76,21 @@ jobs:
         with:
           name: windows-release
           path: ./release-windows
+        continue-on-error: true
 
       - name: Download macOS artifacts
         uses: actions/download-artifact@v4
         with:
           name: macos-release
           path: ./release-macos
+        continue-on-error: true
+
+      - name: List available files
+        run: |
+          echo "Windows files:"
+          ls -la ./release-windows/ || echo "No Windows files found"
+          echo "macOS files:"
+          ls -la ./release-macos/ || echo "No macOS files found"
 
       - name: Create Release
         uses: softprops/action-gh-release@v1
