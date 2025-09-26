@@ -1,13 +1,12 @@
 import { useEffect } from "react";
-import { DailyProgress } from "./DailyProgress";
-import { DailyTargetSettings } from "./DailyTargetSettings";
-import { QuickAddSection } from "./QuickAddSection";
-import { AddZekrForm } from "./AddZekrForm";
-import { ZekrList } from "./ZekrList";
-import { useZekrManager } from "./hooks/useZekrManager";
-import { useDailySettings } from "./hooks/useDailySettings";
-import { useDailyReset } from "./hooks/useDailyReset";
 import Button from "../ui/button";
+import { AddZekrForm } from "./AddZekrForm";
+import { DailyProgress } from "./DailyProgress";
+import { QuickAddSection } from "./QuickAddSection";
+import { ZekrList } from "./ZekrList";
+import { useDailyReset } from "./hooks/useDailyReset";
+import { useDailySettings } from "./hooks/useDailySettings";
+import { useZekrManager } from "./hooks/useZekrManager";
 
 export default function Azkar() {
   const {

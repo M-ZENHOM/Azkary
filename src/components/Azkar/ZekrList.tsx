@@ -38,7 +38,7 @@ export const ZekrList = ({
   }
 
   return (
-    <div className="space-y-2 h-[15vh]">
+    <div className="space-y-2 h-[25vh]">
       <h3 className="text-lg font-semibold text-gray-800">قائمة الأذكار</h3>
       <ul className="w-full flex flex-col gap-2 pb-2">
         {zekr.map((item, index) => (

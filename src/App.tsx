@@ -3,20 +3,19 @@ import Azkar from "./components/Azkar";
 import Layout from "./components/Layout";
 import { NotificationSettings } from "./components/NotificationSettings";
 import Button from "./components/ui/button";
+import Update from "./components/update";
 import { cn } from "./lib/utils";
 import { NotificationSettings as NotificationSettingsType } from "./type/electron";
-import Update from "./components/update";
 
 function App() {
   const [activeTab, setActiveTab] = useState<"zekr" | "settings">("zekr");
-  const [notificationSettings, setNotificationSettings] =
-    useState<NotificationSettingsType>({
-      notificationInterval: 60,
-      enabled: true,
-      showTray: true,
-      muteSound: false,
-      autoStartup: true,
-    });
+  const [_, setNotificationSettings] = useState<NotificationSettingsType>({
+    notificationInterval: 60,
+    enabled: true,
+    showTray: true,
+    muteSound: false,
+    autoStartup: true,
+  });
 
   const handleSettingsChange = (settings: NotificationSettingsType) => {
     setNotificationSettings(settings);
@@ -50,39 +49,6 @@ function App() {
       ) : (
         <NotificationSettings onSettingsChange={handleSettingsChange} />
       )}
-      <div className="w-full bg-white rounded-lg text-center p-4 text-sm text-black">
-        {notificationSettings.enabled ? (
-          <div className="space-y-2">
-            <p>
-              الإشعارات مفعلة - كل {notificationSettings.notificationInterval}{" "}
-              ثانية
-              {notificationSettings.notificationInterval >= 60 && (
-                <span className="text-black font-bold">
-                  {" "}
-                  (
-                  {Math.round(
-                    (notificationSettings.notificationInterval / 60) * 10
-                  ) / 10}{" "}
-                  دقيقة)
-                </span>
-              )}
-            </p>
-            <p className="text-sm text-gray-600">
-              {notificationSettings.muteSound
-                ? "🔇 الصوت مكتوم"
-                : "🔊 الصوت مفعل"}
-            </p>
-            <p className="text-sm text-gray-600">
-              {notificationSettings.autoStartup
-                ? "🚀 التشغيل التلقائي مفعل"
-                : "⏹️ التشغيل التلقائي معطل"}
-            </p>
-          </div>
-        ) : (
-          <p>الإشعارات معطلة</p>
-        )}
-      </div>
-
       <Update />
     </Layout>
   );
