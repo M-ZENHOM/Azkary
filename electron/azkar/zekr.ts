@@ -6,7 +6,7 @@ import {
     dailyProgressPath,
     dailySettingsPath
 } from "./paths";
-import { getLocalDateString } from "../utils/dateUtils";
+import { getLocalDateString } from "../../src/lib/utils";
 
 let webContents: WebContents | null = null
 let isNotifying = false
