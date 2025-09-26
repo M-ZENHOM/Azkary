@@ -3,7 +3,6 @@ import Azkar from "./components/Azkar";
 import Layout from "./components/Layout";
 import { NotificationSettings } from "./components/NotificationSettings";
 import Button from "./components/ui/button";
-import Update from "./components/update";
 import { cn } from "./lib/utils";
 import { NotificationSettings as NotificationSettingsType } from "./type/electron";
 
@@ -49,7 +48,7 @@ function App() {
       ) : (
         <NotificationSettings onSettingsChange={handleSettingsChange} />
       )}
-      <Update />
+      {/* <Update /> */}
     </Layout>
   );
 }
