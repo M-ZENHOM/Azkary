@@ -76,6 +76,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   getTodayZekrCount() {
     return ipcRenderer.invoke("get-today-zekr-count")
+  },
+  showDailyResetNotification() {
+    return ipcRenderer.invoke("show-daily-reset-notification")
   }
 })
 

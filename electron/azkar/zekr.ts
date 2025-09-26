@@ -6,6 +6,7 @@ import {
     dailyProgressPath,
     dailySettingsPath
 } from "./paths";
+import { getLocalDateString } from "../utils/dateUtils";
 
 let webContents: WebContents | null = null
 let isNotifying = false
@@ -214,7 +215,7 @@ export function loadDailySettings(): DailySettings {
         if (!fs.existsSync(dailySettingsPath)) {
             const defaultSettings: DailySettings = {
                 target: 100,
-                lastResetDate: new Date().toISOString().split("T")[0]
+                lastResetDate: getLocalDateString()
             }
             saveDailySettings(defaultSettings)
             return defaultSettings
@@ -225,7 +226,7 @@ export function loadDailySettings(): DailySettings {
         console.error("Error loading daily settings:", error)
         return {
             target: 100,
-            lastResetDate: new Date().toISOString().split("T")[0]
+            lastResetDate: getLocalDateString()
         }
     }
 }

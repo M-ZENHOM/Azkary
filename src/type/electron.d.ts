@@ -37,6 +37,7 @@ export interface ElectronAPI {
     getTodayTotal: () => Promise<number>;
     incrementZekrCount: (zekrText: string) => Promise<number>;
     getTodayZekrCount: (zekrText: string) => Promise<number>;
+    showDailyResetNotification?: () => Promise<boolean>;
 }
 
 declare global {

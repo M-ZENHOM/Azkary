@@ -58,7 +58,7 @@ function setAutoLaunch(enabled: boolean) {
       }
 
       if (enabled) {
-        const command = `reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "${appName}" /t REG_SZ /d "\"${appPath}\"" /f`
+        const command = `reg add "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "${appName}" /t REG_SZ /d "${appPath}" /f`
         exec(command, (error: Error | null) => {
           if (error) {
             console.error('Failed to add to startup:', error)
@@ -619,6 +619,26 @@ ipcMain.handle("verify-auto-startup", async () => {
     return verifyAutoStartup()
   } catch (e) {
     console.error('Failed to verify auto-startup:', e)
+    return false
+  }
+})
+
+ipcMain.handle("show-daily-reset-notification", async () => {
+  try {
+    const { Notification } = require('electron')
+    if (Notification.isSupported()) {
+      const notification = new Notification({
+        title: 'Azkary - Daily Reset',
+        body: 'تم إعادة تعيين الأذكار اليومية. بداية يوم جديد!',
+        icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
+        silent: false
+      })
+      notification.show()
+      console.log('Daily reset notification shown')
+    }
+    return true
+  } catch (e) {
+    console.error('Failed to show daily reset notification:', e)
     return false
   }
 })

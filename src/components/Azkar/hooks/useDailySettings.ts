@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { DailySettings } from "../types";
+import { getLocalDateString } from "../../../lib/utils";
 
 export const useDailySettings = () => {
     const [dailySettings, setDailySettings] = useState<DailySettings>({
         target: 100,
-        lastResetDate: new Date().toISOString().split("T")[0],
+        lastResetDate: getLocalDateString(),
     });
 
     const loadSettings = async () => {
