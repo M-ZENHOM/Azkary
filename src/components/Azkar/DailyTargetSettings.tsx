@@ -20,7 +20,7 @@ export const DailyTargetSettings = ({
             value={target}
             onChange={handleTargetChange}
             min="1"
-            className="w-20"
+            className="w-[100px]"
           />
           <span className="text-sm text-gray-600">ذكر</span>
         </div>
