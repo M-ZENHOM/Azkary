@@ -235,7 +235,7 @@ async function createWindow() {
     autoHideMenuBar: true,
     backgroundColor: "#f7f7f7",
     width: 650,
-    height: 800,
+    height: 850,
     minWidth: 650,
     maxWidth: 650,
     webPreferences: {
