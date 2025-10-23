@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, Menu, nativeImage, shell, Tray } from 'electron'
+import { app, BrowserWindow, ipcMain, Menu, nativeImage, shell, Tray, Notification } from 'electron'
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -6,6 +6,7 @@ import os from 'os'
 import { exec, execSync } from 'child_process'
 import { showNotification } from '../azkar/notification'
 import { defaultSettings, loadSettings, saveSettings } from '../azkar/setting'
+import { getLocalDateString } from '../../src/lib/utils'
 import {
   deleteZekr,
   getTodayTotal,
@@ -260,8 +261,6 @@ async function createWindow() {
 
   if (VITE_DEV_SERVER_URL) {
     win.loadURL(VITE_DEV_SERVER_URL)
-    // Open devTool if the app is not packaged
-    // win.webContents.openDevTools()
   } else {
     win.loadFile(indexHtml)
   }
@@ -297,6 +296,7 @@ app.whenReady().then(() => {
     createTray()
   }
   startNotificationTimer()
+  startDailyResetScheduler()
 })
 
 app.on('window-all-closed', () => {
@@ -429,7 +429,6 @@ export function startNotificationTimer() {
       if (random > 0) continue
 
       console.log(`Selected random zekr: "${zekr.text}"`)
-      // Increment the zekr count when showing notification
       const newCount = incrementZekrCount(zekr.text)
       console.log(`Incremented count for "${zekr.text}" to ${newCount}`)
       const settings = loadSettings()
@@ -437,6 +436,99 @@ export function startNotificationTimer() {
       break
     }
   }, intervalMs)
+}
+
+let dailyResetTimer: NodeJS.Timeout | null = null
+
+export function startDailyResetScheduler() {
+  if (dailyResetTimer) {
+    clearTimeout(dailyResetTimer)
+    dailyResetTimer = null
+  }
+
+  console.log('Starting daily reset scheduler...')
+
+  const scheduleNextReset = () => {
+    const now = new Date()
+    const tomorrow = new Date(now)
+    tomorrow.setDate(tomorrow.getDate() + 1)
+    tomorrow.setHours(0, 0, 0, 0)
+
+    const msUntilMidnight = tomorrow.getTime() - now.getTime()
+    console.log('Scheduling daily reset in', msUntilMidnight, 'ms (at midnight)')
+
+    dailyResetTimer = setTimeout(async () => {
+      console.log('Midnight reached, performing automatic daily reset...')
+      await performDailyReset()
+
+      scheduleNextReset()
+    }, msUntilMidnight)
+  }
+
+  checkAndPerformDailyReset()
+  scheduleNextReset()
+}
+
+async function checkAndPerformDailyReset() {
+  try {
+    const today = getLocalDateString()
+    const dailySettings = loadDailySettings()
+
+    if (dailySettings.lastResetDate !== today) {
+      console.log('Daily reset needed on startup. Last reset:', dailySettings.lastResetDate, 'Today:', today)
+      await performDailyReset()
+    } else {
+      console.log('Daily reset already performed today:', today)
+    }
+  } catch (error) {
+    console.error('Error checking daily reset:', error)
+  }
+}
+
+async function performDailyReset() {
+  try {
+    const today = getLocalDateString()
+    console.log('Performing daily reset for date:', today)
+
+    const zekrList = loadAzkar()
+    if (!zekrList || zekrList.length === 0) {
+      console.log('No zekr found, skipping reset')
+      return
+    }
+
+    const resetZekr = zekrList.map((item) => ({ ...item, count: 0 }))
+
+    saveAllZekr(resetZekr, false)
+
+    const dailySettings = loadDailySettings()
+    saveDailySettings({
+      ...dailySettings,
+      lastResetDate: today,
+    })
+
+    saveDailyProgress(today, 0)
+
+    console.log('Daily reset completed successfully')
+
+    if (win && !win.isDestroyed()) {
+      try {
+        if (Notification.isSupported()) {
+          const notification = new Notification({
+            title: 'Azkary - Daily Reset',
+            body: 'تم إعادة تعيين الأذكار اليومية. بداية يوم جديد!',
+            icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
+            silent: false
+          })
+          notification.show()
+          console.log('Daily reset notification shown')
+        }
+      } catch (error) {
+        console.error('Failed to show daily reset notification:', error)
+      }
+    }
+  } catch (error) {
+    console.error('Error performing daily reset:', error)
+  }
 }
 
 ipcMain.handle("get-notification-settings", async () => {
@@ -467,6 +559,9 @@ ipcMain.handle("update-notification-settings", async (_, settings) => {
 
     startNotificationTimer()
     console.log('Notification timer restarted')
+
+    startDailyResetScheduler()
+    console.log('Daily reset scheduler restarted')
 
     if (settings.hasOwnProperty('showTray')) {
       if (settings.showTray && !tray) {
@@ -579,7 +674,7 @@ ipcMain.handle("add-missing-zekr", async (_, zekrText: string) => {
       count: 0
     }
     const updatedZekrList = [...zekrList, newZekr]
-    saveAllZekr(updatedZekrList, false) // Allow notification for adding missing zekr
+    saveAllZekr(updatedZekrList, false)
     return true
   } catch (e) {
     console.error('Failed to add missing zekr:', e)
@@ -625,7 +720,6 @@ ipcMain.handle("verify-auto-startup", async () => {
 
 ipcMain.handle("show-daily-reset-notification", async () => {
   try {
-    const { Notification } = require('electron')
     if (Notification.isSupported()) {
       const notification = new Notification({
         title: 'Azkary - Daily Reset',

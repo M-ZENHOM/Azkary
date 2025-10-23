@@ -1,6 +1,11 @@
 import { DailyProgressProps } from "./types";
+import Button from "../ui/button";
 
-export const DailyProgress = ({ todayTotal, target }: DailyProgressProps) => {
+export const DailyProgress = ({
+  todayTotal,
+  target,
+  onManualReset,
+}: DailyProgressProps) => {
   const progressPercentage = Math.min((todayTotal / target) * 100, 100);
 
   return (
@@ -18,6 +23,18 @@ export const DailyProgress = ({ todayTotal, target }: DailyProgressProps) => {
             />
           </div>
         </div>
+        {onManualReset && (
+          <div className="mt-4">
+            <Button
+              onClick={onManualReset}
+              variant="default"
+              size="sm"
+              className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+            >
+              إعادة تعيين اليوم
+            </Button>
+          </div>
+        )}
       </div>
     </div>
   );

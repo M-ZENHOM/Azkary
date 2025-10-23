@@ -24,7 +24,10 @@ export default function Azkar() {
   } = useZekrManager();
 
   const { dailySettings } = useDailySettings();
-  const { checkDailyReset } = useDailyReset(zekr, dailySettings);
+  const { checkDailyReset, performDailyReset } = useDailyReset(
+    zekr,
+    dailySettings
+  );
 
   useEffect(() => {
     if (dailySettings.lastResetDate) {
@@ -70,7 +73,11 @@ export default function Azkar() {
       )}
 
       <div className="flex-shrink-0 space-y-4">
-        <DailyProgress todayTotal={todayTotal} target={dailySettings.target} />
+        <DailyProgress
+          todayTotal={todayTotal}
+          target={dailySettings.target}
+          onManualReset={performDailyReset}
+        />
 
         <QuickAddSection onQuickAdd={quickAddZekr} />
 

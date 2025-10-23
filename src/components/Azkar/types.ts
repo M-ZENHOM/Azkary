@@ -25,6 +25,7 @@ export interface ZekrListProps {
 export interface DailyProgressProps {
     todayTotal: number;
     target: number;
+    onManualReset?: () => void;
 }
 
 export interface DailyTargetSettingsProps {

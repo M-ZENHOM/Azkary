@@ -54,7 +54,7 @@ function _notifyRendererOfZekrUpdate() {
         } finally {
             isNotifying = false
         }
-    }, 200) // Increased debounce to 200ms
+    }, 200)
 }
 
 export function loadAzkar(): ZekrItem[] {

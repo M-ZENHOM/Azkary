@@ -2,6 +2,7 @@ import { Notification } from "electron"
 import fs from "node:fs"
 import path from "node:path"
 import { getTodayTotal, saveDailyProgress } from "./zekr"
+import { getLocalDateString } from "../../src/lib/utils"
 
 export async function showNotification(zekr: { text: string }, muteSound: boolean = false) {
 
@@ -25,7 +26,7 @@ export async function showNotification(zekr: { text: string }, muteSound: boolea
 
     try {
         const newTotal = getTodayTotal()
-        const today = new Date().toISOString().split("T")[0]
+        const today = getLocalDateString()
         saveDailyProgress(today, newTotal)
     } catch (error) {
         console.error('Failed to update counts in notification:', error)

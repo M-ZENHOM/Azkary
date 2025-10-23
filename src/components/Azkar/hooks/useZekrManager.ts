@@ -151,7 +151,7 @@ export const useZekrManager = () => {
         startTransition(() => {
             loadZekr();
         });
-    }, []); 
+    }, []);
 
     useEffect(() => {
         let isProcessingUpdate = false;
@@ -207,7 +207,7 @@ export const useZekrManager = () => {
                 window.ipcRenderer.off("zekr-data-updated", handleZekrDataUpdate);
             }
         };
-    }, []); // Keep empty dependency array
+    }, []);
 
     return {
         zekr,
