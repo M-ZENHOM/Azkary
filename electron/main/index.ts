@@ -36,6 +36,9 @@ if (os.release().startsWith('6.1')) app.disableHardwareAcceleration()
 
 if (process.platform === 'win32') app.setAppUserModelId(app.getName())
 
+// Register protocol handler
+app.setAsDefaultProtocolClient('azkary')
+
 if (!app.requestSingleInstanceLock()) {
   app.quit()
   process.exit(0)
@@ -50,6 +53,13 @@ const indexHtml = path.join(RENDERER_DIST, 'index.html')
 function setAutoLaunch(enabled: boolean) {
   try {
     if (process.platform === 'win32') {
+      const isDevelopment = process.execPath.includes('node_modules')
+
+      if (isDevelopment) {
+        console.log('Auto-startup disabled in development mode')
+        return
+      }
+
       const appPath = process.execPath
       const appName = app.getName()
 
@@ -127,6 +137,11 @@ X-GNOME-Autostart-enabled=true`
 
 function checkAutoLaunchStatus(): boolean {
   if (process.platform === 'win32') {
+    const isDevelopment = process.execPath.includes('node_modules')
+    if (isDevelopment) {
+      return false
+    }
+
     try {
       const result = execSync(`reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "${app.getName()}"`, { encoding: 'utf8' })
       return result.includes(app.getName())
@@ -145,6 +160,11 @@ function checkAutoLaunchStatus(): boolean {
 
 function verifyAutoStartup(): boolean {
   if (process.platform === 'win32') {
+    const isDevelopment = process.execPath.includes('node_modules')
+    if (isDevelopment) {
+      return false
+    }
+
     try {
       const result = execSync(`reg query "HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\Run" /v "${app.getName()}"`, { encoding: 'utf8' })
       if (result.includes(app.getName())) {
@@ -289,7 +309,10 @@ app.whenReady().then(() => {
   const settings = loadSettings()
 
   if (settings.autoStartup) {
-    setAutoLaunch(true)
+    const isDevelopment = process.execPath.includes('node_modules')
+    if (!isDevelopment) {
+      setAutoLaunch(true)
+    }
   }
 
   if (settings.showTray) {
@@ -317,7 +340,7 @@ app.on('before-quit', () => {
   }
 })
 
-app.on('second-instance', () => {
+app.on('second-instance', (event, commandLine, workingDirectory) => {
   if (win) {
     if (win.isMinimized()) win.restore()
     win.focus()
@@ -328,6 +351,17 @@ app.on('activate', () => {
   const allWindows = BrowserWindow.getAllWindows()
   if (allWindows.length) {
     allWindows[0].focus()
+  } else {
+    createWindow()
+  }
+})
+
+// Handle protocol URLs
+app.on('open-url', (event, url) => {
+  event.preventDefault()
+  if (win) {
+    win.show()
+    win.focus()
   } else {
     createWindow()
   }
