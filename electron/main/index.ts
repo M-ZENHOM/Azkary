@@ -308,10 +308,15 @@ app.whenReady().then(() => {
   createWindow()
   const settings = loadSettings()
 
-  if (settings.autoStartup) {
-    const isDevelopment = process.execPath.includes('node_modules')
-    if (!isDevelopment) {
+  const isDevelopment = process.execPath.includes('node_modules')
+  if (!isDevelopment) {
+    const isCurrentlyEnabled = checkAutoLaunchStatus()
+    if (settings.autoStartup && !isCurrentlyEnabled) {
+      console.log('Enabling auto-startup on app launch')
       setAutoLaunch(true)
+    } else if (!settings.autoStartup && isCurrentlyEnabled) {
+      console.log('Disabling auto-startup on app launch')
+      setAutoLaunch(false)
     }
   }
 
@@ -473,6 +478,7 @@ export function startNotificationTimer() {
 }
 
 let dailyResetTimer: NodeJS.Timeout | null = null
+let isResetting = false
 
 export function startDailyResetScheduler() {
   if (dailyResetTimer) {
@@ -492,6 +498,11 @@ export function startDailyResetScheduler() {
     console.log('Scheduling daily reset in', msUntilMidnight, 'ms (at midnight)')
 
     dailyResetTimer = setTimeout(async () => {
+      if (isResetting) {
+        console.log('Reset already in progress, skipping')
+        scheduleNextReset()
+        return
+      }
       console.log('Midnight reached, performing automatic daily reset...')
       await performDailyReset()
 
@@ -504,6 +515,11 @@ export function startDailyResetScheduler() {
 }
 
 async function checkAndPerformDailyReset() {
+  if (isResetting) {
+    console.log('Reset already in progress, skipping check')
+    return
+  }
+
   try {
     const today = getLocalDateString()
     const dailySettings = loadDailySettings()
@@ -520,21 +536,38 @@ async function checkAndPerformDailyReset() {
 }
 
 async function performDailyReset() {
+  if (isResetting) {
+    console.log('Reset already in progress, aborting')
+    return
+  }
+
+  isResetting = true
+
   try {
     const today = getLocalDateString()
+    const dailySettings = loadDailySettings()
+
+    if (dailySettings.lastResetDate === today) {
+      console.log('Daily reset already performed today:', today, '- skipping')
+      return
+    }
+
     console.log('Performing daily reset for date:', today)
 
     const zekrList = loadAzkar()
     if (!zekrList || zekrList.length === 0) {
       console.log('No zekr found, skipping reset')
+      saveDailySettings({
+        ...dailySettings,
+        lastResetDate: today,
+      })
       return
     }
 
     const resetZekr = zekrList.map((item) => ({ ...item, count: 0 }))
 
-    saveAllZekr(resetZekr, false)
+    saveAllZekr(resetZekr, true)
 
-    const dailySettings = loadDailySettings()
     saveDailySettings({
       ...dailySettings,
       lastResetDate: today,
@@ -544,24 +577,33 @@ async function performDailyReset() {
 
     console.log('Daily reset completed successfully')
 
-    if (win && !win.isDestroyed()) {
-      try {
-        if (Notification.isSupported()) {
-          const notification = new Notification({
-            title: 'Azkary - Daily Reset',
-            body: 'تم إعادة تعيين الأذكار اليومية. بداية يوم جديد!',
-            icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
-            silent: false
-          })
-          notification.show()
-          console.log('Daily reset notification shown')
+    setTimeout(() => {
+      if (win && !win.isDestroyed()) {
+        try {
+          if (Notification.isSupported()) {
+            const notification = new Notification({
+              title: 'Azkary - Daily Reset',
+              body: 'تم إعادة تعيين الأذكار اليومية. بداية يوم جديد!',
+              icon: path.join(process.env.VITE_PUBLIC, 'favicon.ico'),
+              silent: false
+            })
+            notification.show()
+            console.log('Daily reset notification shown')
+          }
+          if (win && !win.isDestroyed() && win.webContents) {
+            const total = resetZekr.reduce((sum, z) => sum + (z.count || 0), 0)
+            win.webContents.send('zekr-data-updated', { total })
+            win.webContents.send('daily-settings-updated')
+          }
+        } catch (error) {
+          console.error('Failed to show daily reset notification:', error)
         }
-      } catch (error) {
-        console.error('Failed to show daily reset notification:', error)
       }
-    }
+    }, 500)
   } catch (error) {
     console.error('Error performing daily reset:', error)
+  } finally {
+    isResetting = false
   }
 }
 

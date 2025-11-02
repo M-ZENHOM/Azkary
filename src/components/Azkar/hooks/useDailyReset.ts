@@ -1,12 +1,11 @@
 import { useEffect, useCallback } from "react";
 import { Zekr, DailySettings } from "../types";
-import { getLocalDateString, getMillisecondsUntilMidnight } from "../../../lib/utils";
+import { getLocalDateString } from "../../../lib/utils";
 
 export const useDailyReset = (zekr: Zekr[], dailySettings: DailySettings) => {
-
     const performDailyReset = useCallback(async () => {
         const today = getLocalDateString();
-        console.log('Performing daily reset for date:', today);
+        console.log('Performing manual daily reset for date:', today);
 
         const resetZekr = zekr.map((item) => ({ ...item, count: 0 }));
 
@@ -43,30 +42,18 @@ export const useDailyReset = (zekr: Zekr[], dailySettings: DailySettings) => {
         }
 
         console.log('Daily reset needed. Last reset:', dailySettings.lastResetDate, 'Today:', today);
-        await performDailyReset();
-    }, [dailySettings.lastResetDate, performDailyReset]);
+        console.log('Daily reset will be handled by main process or can be triggered manually');
+    }, [dailySettings.lastResetDate]);
 
     useEffect(() => {
-        const scheduleMidnightReset = () => {
-            const msUntilMidnight = getMillisecondsUntilMidnight();
-            console.log('Scheduling midnight reset in', msUntilMidnight, 'ms');
-
-            const timeoutId = setTimeout(async () => {
-                console.log('Midnight reached, performing automatic daily reset');
-                await performDailyReset();
-
-                scheduleMidnightReset();
-            }, msUntilMidnight);
-
-            return timeoutId;
-        };
-
-        const timeoutId = scheduleMidnightReset();
+        const timeoutId = setTimeout(() => {
+            checkDailyReset();
+        }, 1000);
 
         return () => {
             clearTimeout(timeoutId);
         };
-    }, [performDailyReset]);
+    }, [checkDailyReset]);
 
     return { checkDailyReset, performDailyReset };
 };

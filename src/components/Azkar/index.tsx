@@ -30,10 +30,14 @@ export default function Azkar() {
   );
 
   useEffect(() => {
-    if (dailySettings.lastResetDate) {
-      checkDailyReset();
-    }
-  }, [dailySettings.lastResetDate, checkDailyReset]);
+    const timeoutId = setTimeout(() => {
+      if (dailySettings.lastResetDate) {
+        checkDailyReset();
+      }
+    }, 2000);
+
+    return () => clearTimeout(timeoutId);
+  }, []);
 
   if (isPending) {
     return (

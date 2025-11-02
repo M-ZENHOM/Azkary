@@ -41,6 +41,25 @@ export const useDailySettings = () => {
 
     useEffect(() => {
         loadSettings();
+
+        const handleSettingsUpdate = () => {
+            loadSettings();
+        };
+
+        if (window.ipcRenderer) {
+            window.ipcRenderer.on('daily-settings-updated', handleSettingsUpdate);
+        }
+
+        const intervalId = setInterval(() => {
+            loadSettings();
+        }, 60000);
+
+        return () => {
+            if (window.ipcRenderer) {
+                window.ipcRenderer.off('daily-settings-updated', handleSettingsUpdate);
+            }
+            clearInterval(intervalId);
+        };
     }, []);
 
     return {
