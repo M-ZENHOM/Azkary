@@ -437,7 +437,11 @@ ipcMain.handle("save-all-zekr", async (_, zekrArray, skipNotification = false) =
 
 export function startNotificationTimer() {
   if (notificationTimer) {
-    clearInterval(notificationTimer)
+    if (typeof notificationTimer === 'number') {
+      clearTimeout(notificationTimer)
+    } else {
+      clearInterval(notificationTimer)
+    }
     notificationTimer = null
   }
 
@@ -450,31 +454,51 @@ export function startNotificationTimer() {
   console.log('Starting notification timer with interval:', settings.notificationInterval, 'seconds')
   const intervalMs = settings.notificationInterval * 1000
 
-  notificationTimer = setInterval(async () => {
-    console.log('Notification timer triggered, loading zekr list...')
-    const zekrList = loadAzkar()
-    console.log('Loaded zekr list:', zekrList)
+  const scheduleNext = async () => {
+    try {
+      console.log('Notification timer triggered, loading zekr list...')
+      const zekrList = loadAzkar()
+      console.log('Loaded zekr list:', zekrList)
 
-    if (!zekrList || zekrList.length === 0) {
-      console.log('No zekr found or empty zekr list')
-      return
+      if (!zekrList || zekrList.length === 0) {
+        console.log('No zekr found or empty zekr list')
+        notificationTimer = setTimeout(scheduleNext, intervalMs) as unknown as NodeJS.Timeout
+        return
+      }
+
+      const totalPriority = zekrList.reduce((sum: number, zekr: { priority: number }) => sum + zekr.priority, 0)
+      if (totalPriority === 0) {
+        console.log('Total priority is 0, skipping notification')
+        notificationTimer = setTimeout(scheduleNext, intervalMs) as unknown as NodeJS.Timeout
+        return
+      }
+
+      let random = Math.random() * totalPriority
+
+      for (const zekr of zekrList) {
+        random -= zekr.priority
+        if (random > 0) continue
+
+        console.log(`Selected random zekr: "${zekr.text}"`)
+        const newCount = incrementZekrCount(zekr.text)
+        console.log(`Incremented count for "${zekr.text}" to ${newCount}`)
+        const currentSettings = loadSettings()
+        await showNotification(zekr, currentSettings.muteSound)
+        break
+      }
+    } catch (error) {
+      console.error('Error in notification timer:', error)
+    } finally {
+      const currentSettings = loadSettings()
+      if (currentSettings.enabled) {
+        notificationTimer = setTimeout(scheduleNext, intervalMs) as unknown as NodeJS.Timeout
+      } else {
+        console.log('Notifications disabled, stopping timer')
+      }
     }
+  }
 
-    const totalPriority = zekrList.reduce((sum: number, zekr: { priority: number }) => sum + zekr.priority, 0)
-    let random = Math.random() * totalPriority
-
-    for (const zekr of zekrList) {
-      random -= zekr.priority
-      if (random > 0) continue
-
-      console.log(`Selected random zekr: "${zekr.text}"`)
-      const newCount = incrementZekrCount(zekr.text)
-      console.log(`Incremented count for "${zekr.text}" to ${newCount}`)
-      const settings = loadSettings()
-      await showNotification(zekr, settings.muteSound)
-      break
-    }
-  }, intervalMs)
+  scheduleNext()
 }
 
 let dailyResetTimer: NodeJS.Timeout | null = null
